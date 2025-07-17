@@ -1,0 +1,45 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/documan
+    username: admin
+    password: admin
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/documan
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin
+
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    com.app.documan: DEBUG
+
+smb:
+  host: localhost
+  port: 1445
+  domain: WORKGROUP
+  username: admin
+  password: admin
+  shareName: sharedFolder
+
+springdoc:
+  swagger-ui:
+#   changed to root path, the default one is: http://localhost:8080/swagger-ui/index.html
+    path: /
+    disable-swagger-default-url: true

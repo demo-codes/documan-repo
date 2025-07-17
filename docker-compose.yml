@@ -1,0 +1,87 @@
+services:
+  postgres:
+    image: postgres:17.5-alpine
+    container_name: documan-postgres
+    environment:
+      POSTGRES_DB: documan
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - documan-net
+
+  mongodb:
+    image: mongo:7.0.21-jammy
+    container_name: documan-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - documan-net
+
+  mongo-express:
+    image: mongo-express:1.0.2-18-alpine3.18
+    container_name: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_MONGODB_PORT: 27017
+      ME_CONFIG_MONGODB_ENABLE_ADMIN: true
+      ME_CONFIG_MONGODB_AUTH_DATABASE: admin
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8081 || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - documan-net
+
+  rabbitmq:
+    image: rabbitmq:4.1.1-management-alpine
+    container_name: documan-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672" # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    networks:
+      - documan-net
+
+  smb:
+    image: dperson/samba
+    container_name: documan-smb
+    ports:
+      - "139:139"
+      - "1445:445"
+    environment:
+      - USER=admin;admin
+      - SHARE=sharedFolder;/mnt/shareSrc;yes;no;no;admin;none;none;Demo source SMB
+    volumes:
+      - ./demo:/mnt/shareSrc
+    networks:
+      - documan-net
+
+
+volumes:
+  postgres_data:
+  mongo_data:
+
+networks:
+  documan-net:
+    driver: bridge
